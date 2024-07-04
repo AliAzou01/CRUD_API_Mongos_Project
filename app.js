@@ -1,3 +1,5 @@
+
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const { graphqlHTTP } = require('express-graphql');
@@ -42,6 +44,7 @@ app.use('/graphql', graphqlHTTP({
 
         type RootQuery {
             events: [Event!]!
+            user(email: String!): User
         }
         type RootMutation {
             createEvent(eventInput: EventInput!): Event
@@ -55,11 +58,27 @@ app.use('/graphql', graphqlHTTP({
     rootValue: {
         events: () => {
             return Event.find()
-            .then(() => {
+            .then(events => {
                 return events.map(event => {
-                    return { ...event._doc, _id: result._doc._id.toString() };
+                    return { ...event._doc, _id: event._doc._id.toString() };
                 });
             }).catch(() => {
+                throw err;
+            });
+        },
+        user: (args) => {
+            console.log('Fetching user with email:', args.email);
+            return User.findOne({ email: args.email })
+            .then(user => {
+                if (!user) {
+                    console.log('User not found!');
+                    throw new Error('User not found!');
+                }
+                console.log('User found:', user);
+                return { ...user._doc, _id: user._doc._id.toString() };
+            })
+            .catch(err => {
+                console.error('Error fetching user:', err);
                 throw err;
             });
         },
@@ -69,14 +88,14 @@ app.use('/graphql', graphqlHTTP({
                 description: args.eventInput.description,
                 price: +args.eventInput.price,
                 date: new Date(args.eventInput.date),
-                creator: '6686989449fad979478b263e'
+                creator: '6686b8355ae6e0041d6d749f'
             });
             let createdEvent;
             return event
             .save()
             .then(result => {
                 createdEvent = {...result._doc, _id: result._doc._id.toString() };
-                return User.findById('6686989449fad979478b263e')
+                return User.findById('6686b8355ae6e0041d6d749f')
             })
             .then(user =>{
                 if(!user){
@@ -110,7 +129,7 @@ app.use('/graphql', graphqlHTTP({
             return user.save();
             })
             .then(result => {
-                return {...result._doc,passwod: null, _id: result._id };
+                return {...result._doc,passwod: null, _id: result._doc._id.toString() };
             })
             .catch(err => {
                 throw err;
@@ -132,4 +151,4 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
             console.log('GraphQL server is running on localhost:3000/graphql');
         });
     })
-    .catch(err => console.log(err));
+    .catch(err => console.log("azul",err));
