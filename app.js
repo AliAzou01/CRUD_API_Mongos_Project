@@ -57,22 +57,36 @@ app.use('/graphql', graphqlHTTP({
             return Event.find()
             .then(() => {
                 return events.map(event => {
-                    return { ...event._doc, _id: event.id };
+                    return { ...event._doc, _id: result._doc._id.toString() };
                 });
-            })
+            }).catch(() => {
+                throw err;
+            });
         },
         createEvent: (args) => {
             const event = new Event({
                 title: args.eventInput.title,
                 description: args.eventInput.description,
                 price: +args.eventInput.price,
-                date: new Date(args.eventInput.date)
+                date: new Date(args.eventInput.date),
+                creator: '6686989449fad979478b263e'
             });
+            let createdEvent;
             return event
             .save()
             .then(result => {
-                console.log(result);
-                return {...result._doc, _id: result._doc._id.toString() };
+                createdEvent = {...result._doc, _id: result._doc._id.toString() };
+                return User.findById('6686989449fad979478b263e')
+            })
+            .then(user =>{
+                if(!user){
+                    throw new Error('User not found!');
+                }
+                user.createdEvents.push(event);
+                user.save()
+            })
+            .then(() => {
+                return createdEvent;
             })
             .catch(err => {
                 console.log(err);
@@ -110,7 +124,7 @@ app.use('/graphql', graphqlHTTP({
 const user = encodeURIComponent(process.env.MONGO_USER);
 const password = encodeURIComponent(process.env.MONGO_PASSWORD);
 const dbName = encodeURIComponent(process.env.MONGO_DB);
-const uri = `mongodb+srv://${user}:${password}@cluster0.hhmlk30.mongodb.net/${dbName}?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${user}:${password}@cluster0.hhmlk30.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
