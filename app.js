@@ -15,6 +15,30 @@ const events = [];
 
 app.use(bodyParser.json());
 
+const event = eventId => {
+    return Event.find({_id: {$in: eventId}})
+    .then(events => {
+        return events.map(event =>{
+           return {...event._doc, _id: event.id, creator: user.bind(this, event.creator)};
+        });
+    })
+    .catch(err => {
+        throw err
+    });
+};
+
+const user = userId => {
+    return User.findById(userId)
+    .then(user => {
+        
+        if (!user) { throw new Error(' No User exists!'); }
+
+        return {...user._doc, _id : user.id, createdEvent: event.bind(this, user._doc.createdEvent)};})
+        .catch(err => {
+            throw err
+        });
+};
+
 app.use('/graphql', graphqlHTTP({
     schema: buildSchema(`
         type Event {
@@ -23,12 +47,14 @@ app.use('/graphql', graphqlHTTP({
            description: String!
            price: Float!
            date: String!
+           creator: User!
         }
 
         type User {
             _id: String!
             email: String!
             password: String!
+            createdEvent:[Event!]
         }
         input EventInput {
             title: String!
@@ -60,7 +86,11 @@ app.use('/graphql', graphqlHTTP({
             return Event.find()
             .then(events => {
                 return events.map(event => {
-                    return { ...event._doc, _id: event._doc._id.toString() };
+                    return { 
+                            ...event._doc,
+                            _id: event.id,
+                            creator: user.bind(this, event.creator)
+                          };
                 });
             }).catch(() => {
                 throw err;
@@ -140,15 +170,14 @@ app.use('/graphql', graphqlHTTP({
 
 }));
 
-const user = encodeURIComponent(process.env.MONGO_USER);
+const user1 = encodeURIComponent(process.env.MONGO_USER);
 const password = encodeURIComponent(process.env.MONGO_PASSWORD);
-const dbName = encodeURIComponent(process.env.MONGO_DB);
-const uri = `mongodb+srv://${user}:${password}@cluster0.hhmlk30.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${user1}:${password}@cluster0.hhmlk30.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`;
 
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(uri)
     .then(() => {
         app.listen(3000, () => {
             console.log('GraphQL server is running on localhost:3000/graphql');
         });
     })
-    .catch(err => console.log("azul",err));
+    .catch(err => console.log("Error:", err));
