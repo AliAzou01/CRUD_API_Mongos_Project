@@ -29,7 +29,7 @@ const uri = `mongodb+srv://${user1}:${password}@cluster0.hhmlk30.mongodb.net/${p
 
 mongoose.connect(uri)
     .then(() => {
-        app.listen(3000, () => {
+        app.listen(3001, () => {
             console.log('GraphQL server is running on localhost:3000/graphql');
         });
     })
