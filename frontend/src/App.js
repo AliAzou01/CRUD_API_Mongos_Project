@@ -32,7 +32,8 @@ function App() {
       <MainNaviagation/>
       <main className='main-content'>
       <Routes>
-        {!token && <Route path="/" element={<Navigate to="/auth" />} />}
+        
+        {!token && <Route path="*" element={<Navigate to="/auth" />} />}
         {token && <Route path="/" element={<Navigate to="/events" />} />}
         {token && <Route path="/auth" element={<Navigate to="/booking" />} />}
         {!token && (<Route path="/auth" element={<AuthPage />} /> )} 
