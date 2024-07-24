@@ -1,12 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useContext } from 'react';
 import './Auth.css';
+import AuthContext from '../context/auth-context';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const emailEl = useRef();
   const passwordEl = useRef();
+  const authContext = useContext(AuthContext);
 
-  const switchedHandler = () => {
+  const switchModeHandler = () => {
     setIsLogin(!isLogin);
   };
 
@@ -46,7 +48,7 @@ const AuthPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/graphql', { // Assurez-vous que cette URL est correcte
+      const response = await fetch('http://localhost:8000/graphql', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +64,7 @@ const AuthPage = () => {
       console.log('Authentication successful', data);
 
       if (data.data.login) {
-        localStorage.setItem('token', data.data.login.token);
+        authContext.login(data.data.login.token, data.data.login.userId, data.data.login.tokenExpiration);
         // Redirigez l'utilisateur ou mettez à jour l'état du composant
         // Par exemple, utilisez `history.push('/dashboard')` si vous utilisez `react-router`
       } else if (data.data.createUser) {
@@ -92,7 +94,7 @@ const AuthPage = () => {
       {/* Button */}
       <div className="d-grid form-actions">
         <button type="submit" className="btn btn-lg btn-primary">{isLogin ? "Login" : "Sign Up"}</button>
-        <button type="button" onClick={switchedHandler}>Switch to {isLogin ? "Sign Up" : "Login"}</button>
+        <button type="button" onClick={switchModeHandler}>Switch to {isLogin ? "Sign Up" : "Login"}</button>
       </div>
       {/* Copyright */}
       <p className="mb-0 mt-3">
