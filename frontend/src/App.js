@@ -7,7 +7,7 @@ import MainNaviagation from './pages/components/MainNavigation.js';
 import AuthContext from './context/auth-context.js';
 
 
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 
 
 
@@ -32,9 +32,13 @@ function App() {
       <MainNaviagation/>
       <main className='main-content'>
       <Routes>
-        <Route path="/auth" element={<AuthPage />} />  
+        {!token && <Route path="/" element={<Navigate to="/auth" />} />}
+        {token && <Route path="/" element={<Navigate to="/events" />} />}
+        {token && <Route path="/auth" element={<Navigate to="/booking" />} />}
+        {!token && (<Route path="/auth" element={<AuthPage />} /> )} 
+        {token && (<Route path="/booking" element={<BookingPage />} />)}
         <Route path="/events"element={<EventPage />} />
-        <Route path="/booking" element={<BookingPage />} />
+        
       </Routes>
       </main>
       </AuthContext.Provider>
