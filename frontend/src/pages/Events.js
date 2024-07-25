@@ -2,7 +2,8 @@ import React, { useState, useRef, useContext, useEffect } from 'react';
 import './Events.css';
 import Modal from './components/Modal/Modal';
 import Backdrop from './components/Backdrop/Backdrop';
-import AuthContext from '../context/auth-context';  // Importez votre contexte
+import AuthContext from '../context/auth-context';  
+import EventList from './components/Events/EventList/EventList.js';
 
 const EventPage = () => {
     const [creating, setCreating] = useState(false);
@@ -123,13 +124,6 @@ const EventPage = () => {
         fetchEvents();
     }, []);
 
-    const eventsList = events.map(event => {
-        return (
-            <li key={event._id} className="events-list-item">
-                {event.title} ---- {event.price}£
-            </li>
-        );
-    });
 
     return (
         <React.Fragment>
@@ -160,9 +154,7 @@ const EventPage = () => {
                 <p>Share your own Events!</p>
                 <button className="btn" onClick={createEventHandler}>Create Event</button>
             </div>}
-            <ul className="events-list">
-                {eventsList}
-            </ul>
+            <EventList events={events}/>
         </React.Fragment>
     );
 };
