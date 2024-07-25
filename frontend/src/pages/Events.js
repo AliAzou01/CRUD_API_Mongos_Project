@@ -1,11 +1,12 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import './Events.css';
 import Modal from './components/Modal/Modal';
 import Backdrop from './components/Backdrop/Backdrop';
-import  AuthContext from '../context/auth-context';  // Importez votre contexte
+import AuthContext from '../context/auth-context';  // Importez votre contexte
 
 const EventPage = () => {
     const [creating, setCreating] = useState(false);
+    const [events, setEvents] = useState([]);
     const context = useContext(AuthContext);  // Utilisez le contexte ici
     const titleRef = useRef();
     const priceRef = useRef();
@@ -20,25 +21,25 @@ const EventPage = () => {
         setCreating(false);
     };
 
-    const confirmEventHandler = async () => {  // Ajoutez async ici
+    const confirmEventHandler = () => {
         const title = titleRef.current.value;
         const price = +priceRef.current.value;
         const date = dateRef.current.value;
         const description = descriptionRef.current.value;
-
+    
         if (title.trim().length === 0 || date.trim().length === 0 || description.trim().length === 0) {
             return;
         }
-
+    
         console.log({
             title,
             price,
             date,
             description
         });
-
+    
         setCreating(false);
-
+    
         const requestBody = {
             query: `
                 mutation {
@@ -56,34 +57,79 @@ const EventPage = () => {
                 }
               `
         };
-
-        try {
-            const token = context.token;
-            const response = await fetch('http://localhost:8000/graphql', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify(requestBody),
-            });
-
+    
+        const token = context.token;
+    
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(requestBody),
+        })
+        .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to authenticate');
             }
-
-            const data = await response.json();
-            console.log('Authentication successful', data);
-
-            if (data.data.createEvent) {
-                console.log('Event created successfully', data.data.createEvent);
-            }
-
-        } catch (error) {
+            return response.json();
+        })
+        .then(data => {
+            fetchEvents();
+        })
+        .catch(error => {
             console.error('Error:', error);
-            // Affichez un message d'erreur à l'utilisateur
-        }
+        });
     };
+
+    const fetchEvents = () => {
+        const requestBody = {
+            query: `
+                query {
+                  events {
+                    _id
+                    title
+                    description
+                    date
+                    price
+                  }
+                }
+              `
+        };
+    
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch events');
+            }
+            return response.json();
+        })
+        .then(resData => {
+            const events = resData.data.events;
+            setEvents(events);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    };
+
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    const eventsList = events.map(event => {
+        return (
+            <li key={event._id} className="events-list-item">
+                {event.title} ---- {event.price}£
+            </li>
+        );
+    });
 
     return (
         <React.Fragment>
@@ -110,10 +156,13 @@ const EventPage = () => {
                     </div>
                 </form>
             </Modal>}
-            { context.token && <div className="events-control">
+            {context.token && <div className="events-control">
                 <p>Share your own Events!</p>
                 <button className="btn" onClick={createEventHandler}>Create Event</button>
             </div>}
+            <ul className="events-list">
+                {eventsList}
+            </ul>
         </React.Fragment>
     );
 };
