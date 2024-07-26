@@ -21,11 +21,54 @@ const EventPage = () => {
         setCreating(true);
     };
 
+
+
     const cancelEventHandler = () => {
         setCreating(false);
         setSelectedEvent(null);
     };
+
+
+
     const bookEventHandler= () => {
+        if (!context.token) {
+            setSelectedEvent(null);
+            return;
+        }
+        const requestBody = {
+            query: `
+                mutation {
+                  bookEvent(eventId:"${selectedEvent._id}") {
+                    _id
+                    createdAt 
+                    updatedAt
+                  }
+                }
+              `
+        };
+    
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + context.token
+            },
+            body: JSON.stringify(requestBody),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch events');
+            }
+            return response.json();
+        })
+        .then(resData => {
+            console.log(resData);
+            setSelectedEvent(null);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+        });
     };
 
     const confirmEventHandler = () => {
@@ -178,7 +221,7 @@ const EventPage = () => {
                 </form>
             </Modal>}
             {selectedEvent && (
-                <Modal title="Add Event" canCancel canConfirm onCancel={cancelEventHandler} onConfirm={bookEventHandler} confirmText="Book">
+                <Modal title="Add Event" canCancel canConfirm onCancel={cancelEventHandler} onConfirm={bookEventHandler} confirmText={context.token ? "Book" : "Confirm" }>
                 <h1>{selectedEvent.title}</h1>
                 
                 <h2>£{selectedEvent.price} -- { new Date(selectedEvent.date).toLocaleDateString()}</h2>
