@@ -16,21 +16,18 @@ const EventPage = () => {
     const descriptionRef = useRef();
     const [isLoading, setIsLoading] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [isActive, setIsActive] = useState(true);
 
     const createEventHandler = () => {
         setCreating(true);
     };
-
-
 
     const cancelEventHandler = () => {
         setCreating(false);
         setSelectedEvent(null);
     };
 
-
-
-    const bookEventHandler= () => {
+    const bookEventHandler = () => {
         if (!context.token) {
             setSelectedEvent(null);
             return;
@@ -67,7 +64,6 @@ const EventPage = () => {
         })
         .catch(error => {
             console.error('Error:', error);
-            
         });
     };
 
@@ -121,20 +117,17 @@ const EventPage = () => {
             return response.json();
         })
         .then(data => {
-            setEvents(prevEvents => {
-                const updatedEvents = [...prevEvents.events];
-                updatedEvents.push({
-                    _id: data.data.createEvent._id,
-                    title: data.data.createEvent.title,
-                    description: data.data.createEvent.description,
-                    date: data.data.createEvent.date,
-                    price: data.data.createEvent.price,
-                    creator: {
-                        _id: context.userId
-                    }
-                });
-                return {events: updatedEvents}
-            });
+            const newEvent = {
+                _id: data.data.createEvent._id,
+                title: data.data.createEvent.title,
+                description: data.data.createEvent.description,
+                date: data.data.createEvent.date,
+                price: data.data.createEvent.price,
+                creator: {
+                    _id: context.userId
+                }
+            };
+            setEvents(prevEvents => [...prevEvents, newEvent]);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -176,64 +169,92 @@ const EventPage = () => {
         })
         .then(resData => {
             const events = resData.data.events;
-            setEvents(events);
-            setIsLoading(false);
+            if (isActive) {
+                setEvents(events);
+                setIsLoading(false);
+            }
         })
         .catch(error => {
             console.error('Error:', error);
-            setIsLoading(false);
+            if (isActive) {
+                setIsLoading(false);
+            }
         });
     };
 
     useEffect(() => {
         fetchEvents();
+        return () => {
+            setIsActive(false);
+        };
     }, []);
 
     const viewDetailsHandler = eventId => {
-        setSelectedEvent(events.find(e => e._id === eventId));
-        return {selectedEvent: selectedEvent};
-    }
-
+        const event = events.find(e => e._id === eventId);
+        setSelectedEvent(event);
+    };
 
     return (
         <React.Fragment>
             {(creating || selectedEvent) && <Backdrop />}
-            {creating && <Modal title="Add Event" canCancel canConfirm onCancel={cancelEventHandler} onConfirm={confirmEventHandler} confirmText="Confirm" >
-                <form>
-                    <div className="form-control">
-                        <label htmlFor="title">Title</label>
-                        <input type="text" id="title" ref={titleRef} />
-                    </div>
-                    <div className="form-control">
-                        <label htmlFor="price">Price</label>
-                        <input type="number" id="price" ref={priceRef} />
-                    </div>
-
-                    <div className="form-control">
-                        <label htmlFor="date">Date</label>
-                        <input type="date" id="date" ref={dateRef} />
-                    </div>
-
-                    <div className="form-control">
-                        <label htmlFor="description">Description</label>
-                        <textarea id="description" rows="4" ref={descriptionRef} />
-                    </div>
-                </form>
-            </Modal>}
+            {creating && (
+                <Modal
+                    title="Add Event"
+                    canCancel
+                    canConfirm
+                    onCancel={cancelEventHandler}
+                    onConfirm={confirmEventHandler}
+                    confirmText="Confirm"
+                >
+                    <form>
+                        <div className="form-control">
+                            <label htmlFor="title">Title</label>
+                            <input type="text" id="title" ref={titleRef} />
+                        </div>
+                        <div className="form-control">
+                            <label htmlFor="price">Price</label>
+                            <input type="number" id="price" ref={priceRef} />
+                        </div>
+                        <div className="form-control">
+                            <label htmlFor="date">Date</label>
+                            <input type="date" id="date" ref={dateRef} />
+                        </div>
+                        <div className="form-control">
+                            <label htmlFor="description">Description</label>
+                            <textarea id="description" rows="4" ref={descriptionRef} />
+                        </div>
+                    </form>
+                </Modal>
+            )}
             {selectedEvent && (
-                <Modal title="Add Event" canCancel canConfirm onCancel={cancelEventHandler} onConfirm={bookEventHandler} confirmText={context.token ? "Book" : "Confirm" }>
-                <h1>{selectedEvent.title}</h1>
-                
-                <h2>£{selectedEvent.price} -- { new Date(selectedEvent.date).toLocaleDateString()}</h2>
-                
-                <p>{selectedEvent.description}</p>
-            </Modal>)}
-            {context.token && <div className="events-control">
-                <p>Share your own Events!</p>
-                <button className="btn" onClick={createEventHandler}>Create Event</button>
-            </div>}
-            { isLoading ? (<Spinner />) : (<EventList events={events} AuthUserId={context.userId} EventViewDetails={viewDetailsHandler}/> )}
-            
+                <Modal
+                    title={selectedEvent.title}
+                    canCancel
+                    canConfirm
+                    onCancel={cancelEventHandler}
+                    onConfirm={bookEventHandler}
+                    confirmText={context.token ? "Book" : "Confirm"}
+                >
+                    <h1>{selectedEvent.title}</h1>
+                    <h2>
+                        £{selectedEvent.price} -- {new Date(selectedEvent.date).toLocaleDateString()}
+                    </h2>
+                    <p>{selectedEvent.description}</p>
+                </Modal>
+            )}
+            {context.token && (
+                <div className="events-control">
+                    <p>Share your own Events!</p>
+                    <button className="btn" onClick={createEventHandler}>
+                        Create Event
+                    </button>
+                </div>
+            )}
+            {isLoading ? (
+                <Spinner />
+            ) : (
+                <EventList events={events} AuthUserId={context.userId} EventViewDetails={viewDetailsHandler} />
+            )}
         </React.Fragment>
     );
 };
