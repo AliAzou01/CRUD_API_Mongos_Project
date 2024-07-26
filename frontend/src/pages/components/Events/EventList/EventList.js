@@ -6,7 +6,7 @@ import './EventList.css';
 const eventList = props => {
     
         const events = props.events.map(event => {
-        return <EventItem key={event._id} eventId={event._id} title={event.title}  price={event.price} />
+        return <EventItem key={event._id} eventId={event._id} title={event.title}  price={event.price} AuthUserId={props.AuthUserId} userId={event.creator._id}/>
     });
     
     return (

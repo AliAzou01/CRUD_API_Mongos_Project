@@ -93,6 +93,10 @@ const EventPage = () => {
                     description
                     date
                     price
+                    creator {
+                      _id
+                      email
+                    }
                   }
                 }
               `
@@ -154,7 +158,7 @@ const EventPage = () => {
                 <p>Share your own Events!</p>
                 <button className="btn" onClick={createEventHandler}>Create Event</button>
             </div>}
-            <EventList events={events}/>
+            <EventList events={events} AuthUserId={context.userId}/>
         </React.Fragment>
     );
 };
