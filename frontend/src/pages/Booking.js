@@ -57,8 +57,46 @@ const fetchBookings = () => {
     });
 }
 
+const deleteBookingHandler = (bookingId) => {
+    setIsLoading(true);
+    const requestBody = {
+        query: `
+            mutation {
+              cancelBooking(bookingId : "${bookingId}") {
+                _id
+                title
+                
+              }
+            }
+          `
+    };
+
+    fetch('http://localhost:8000/graphql', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + context.token
+        },
+        body: JSON.stringify(requestBody),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to fetch events');
+        }
+        return response.json();
+    })
+    .then(resData => {
+        setBooking(prevBookings => prevBookings.filter(booking => booking._id !== bookingId));
+        setIsLoading(false);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        setIsLoading(false);
+    });
+}
+
     return (
-        <BookingList bookings={booking} />
+        <BookingList bookings={booking} onDelete={deleteBookingHandler}/>
     );
 };
 
