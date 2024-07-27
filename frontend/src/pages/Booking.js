@@ -1,5 +1,5 @@
 import React, {useState,useContext, useEffect} from 'react';
-
+import BookingList from './components/Booking/BookingList/BookingList';
 import AuthContext from '../context/auth-context'; 
 
 
@@ -12,7 +12,7 @@ const context = useContext(AuthContext);
 
 useEffect(() =>{
     fetchBookings();
-})
+},[])
 
 const fetchBookings = () => {
     setIsLoading(true);
@@ -58,15 +58,7 @@ const fetchBookings = () => {
 }
 
     return (
-        <ul>
-            {booking.map(booking => (
-                <li key={booking._id}>
-                    <h2>{booking.event.title}</h2>
-                    <p>Date: {new Date(booking.event.date).toLocaleDateString()}</p>
-                    <p>Booked on: {new Date(booking.createdAt).toLocaleString()}</p>
-                </li>
-            ))}
-        </ul>
+        <BookingList bookings={booking} />
     );
 };
 
