@@ -107,6 +107,8 @@ const changeOutputTypeHandler = newType => {
     setOutputType(newType);
 };
 
+
+
     
         let content = <Spinner />
         if (!isLoading) {
