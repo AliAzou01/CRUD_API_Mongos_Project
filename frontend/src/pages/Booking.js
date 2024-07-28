@@ -1,6 +1,9 @@
 import React, {useState,useContext, useEffect} from 'react';
 import BookingList from './components/Booking/BookingList/BookingList';
 import AuthContext from '../context/auth-context'; 
+import Spinner from './components/spinner/Spinner';
+import BookingChart from './components/Booking/BookingsChart/BookingsChart'; 
+import BookingControl from './components/Booking/BookingsControl/BookingsControl';
 
 
 
@@ -9,10 +12,8 @@ const BookingPage = () => {
 const [isLoading, setIsLoading] = useState(false);
 const [booking, setBooking] = useState([]);
 const context = useContext(AuthContext); 
+const [outputType, setOutputType] = useState('list');
 
-useEffect(() =>{
-    fetchBookings();
-},[])
 
 const fetchBookings = () => {
     setIsLoading(true);
@@ -57,6 +58,10 @@ const fetchBookings = () => {
     });
 }
 
+useEffect(() => {
+    fetchBookings();
+}, [fetchBookings]);
+
 const deleteBookingHandler = (bookingId) => {
     setIsLoading(true);
     const requestBody = {
@@ -98,9 +103,36 @@ const deleteBookingHandler = (bookingId) => {
     });
 }
 
-    return (
-        <BookingList bookings={booking} onDelete={deleteBookingHandler}/>
-    );
+const changeOutputTypeHandler = newType => {
+    setOutputType(newType);
 };
+
+    
+        let content = <Spinner />
+        if (!isLoading) {
+            content = (
+                <React.Fragment>
+                    <BookingControl 
+                        activeOutputType= {outputType}
+                        onChange={changeOutputTypeHandler}
+                    />
+                    <div>
+                    {(outputType === 'list') ? (
+                    <BookingList 
+                        bookings= {booking}
+                        onDelete={deleteBookingHandler}
+                    />
+                    ) : (
+                
+                    <BookingChart bookings={booking}/>
+                    )}
+                    </div>
+                </React.Fragment>
+            )
+
+        }
+        return <React.Fragment>{content}</React.Fragment>
+    
+}
 
 export default BookingPage;
