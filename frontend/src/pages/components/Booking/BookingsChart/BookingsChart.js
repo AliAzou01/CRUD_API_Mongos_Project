@@ -29,7 +29,8 @@ const bookingChart = props => {
         output[bucket] = filteredBookingCount;
     }
     console.log(output);
-    return <p>The Chart !</p>
+    return <p>The Chart ! regarder la console (^_^) </p>
 };
 
 export default bookingChart;
+
