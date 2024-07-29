@@ -27,6 +27,7 @@ const fetchBookings = () => {
                     _id 
                     title
                     date
+                    price
                 }
               }
             }
@@ -60,7 +61,7 @@ const fetchBookings = () => {
 
 useEffect(() => {
     fetchBookings();
-}, [fetchBookings]);
+}, []);
 
 const deleteBookingHandler = (bookingId) => {
     setIsLoading(true);
